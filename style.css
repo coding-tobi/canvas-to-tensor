@@ -1,0 +1,39 @@
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.draw-area {
+  border: 2px dashed black;
+}
+
+.result-area {
+  background-color: black;
+  width: 280px;
+  height: 280px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+}
+
+button {
+  background: radial-gradient(circle at bottom right, #00b89c 0, #0a7cc4 100%);
+  border: 1px solid #0a7cc4;
+  color: white;
+  outline: none;
+  box-shadow: 1px 1px 3px #00000040;
+  height: 1.7em;
+  border-radius: 0.85em;
+  margin: 5px;
+  cursor: pointer;
+  transition: 100ms ease-in-out box-shadow, 100ms ease-in-out background;
+}
+
+button:hover {
+  box-shadow: 2px 2px 4px #00000040;
+  background: radial-gradient(circle at bottom right, #009e86 0, #075485 100%);
+  border: 1px solid #075485;
+}

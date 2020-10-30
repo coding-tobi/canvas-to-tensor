@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "ESNext",
+    "target": "es6",
+    "allowJs": true,
+    "moduleResolution": "node"
+  }
+}

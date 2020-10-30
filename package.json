@@ -1,0 +1,29 @@
+{
+  "name": "canvas-to-tensor",
+  "version": "1.0.0",
+  "description": "Drawing on a Canvas and convert the pixels to a tensor.",
+  "main": "./ts/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js"
+  },
+  "author": "Tobias Schmidt",
+  "license": "MIT",
+  "devDependencies": {
+    "css-loader": "^5.0.0",
+    "extract-loader": "^5.1.0",
+    "file-loader": "^6.1.1",
+    "html-webpack-plugin": "^4.5.0",
+    "raw-loader": "^4.0.2",
+    "terser-webpack-plugin": "^4.2.2",
+    "ts-loader": "^8.0.7",
+    "typescript": "^4.0.3",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^2.6.0"
+  }
+}
