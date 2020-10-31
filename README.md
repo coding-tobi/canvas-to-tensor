@@ -21,3 +21,4 @@ Drawing on a Canvas and convert the pixels to a tensorflow.js tensor!
    npm run build
    ```
 2. Take a loot at the output folder "./dist"!
+3. There should be one javascript file, wich defines a web component / custom element named "canvas-to-tensor"!
