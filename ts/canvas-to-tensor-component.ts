@@ -4,7 +4,7 @@ import CSS from "../style.css";
 
 const IMAGE_SIZE = 28;
 const CANVAS_SCALE = 10;
-const STROKE_WIDTH = CANVAS_SCALE * 1.6;
+const STROKE_WIDTH = CANVAS_SCALE * 1.5;
 
 export default class CanvasToTensorComponent extends HTMLElement {
   private _root: ShadowRoot;
@@ -135,17 +135,29 @@ export default class CanvasToTensorComponent extends HTMLElement {
 
   private createTensor() {
     tf.tidy(() => {
-      // create tensor from drawn image
+      // create gauss filter for blurring
+      const gaussFilter = CanvasToTensorComponent.gaussFilter(
+        CANVAS_SCALE,
+        Math.sqrt(CANVAS_SCALE)
+      )
+        .expandDims(2)
+        .expandDims<tf.Tensor4D>(2);
+
+      // create a tensor from the drawn image
+      // combine channels -> invert -> normalize -> blur -> resize
       const imageTensor = tf.browser
         .fromPixels(this._canvas)
-        .resizeBilinear([IMAGE_SIZE, IMAGE_SIZE])
         .mean(2)
         .sub(255)
         .neg()
         .div(255)
+        .expandDims(2)
+        .conv2d(gaussFilter, [1, 1], "same")
+        .resizeNearestNeighbor([IMAGE_SIZE, IMAGE_SIZE])
+        .clipByValue(0, 1)
         .as2D(IMAGE_SIZE, IMAGE_SIZE);
 
-      // create image canvas from tensor
+      // create a canvas from the image tensor
       const canvas = document.createElement("canvas");
       canvas.width = IMAGE_SIZE;
       canvas.height = IMAGE_SIZE;
@@ -180,5 +192,30 @@ export default class CanvasToTensorComponent extends HTMLElement {
     this._canvas.removeEventListener("touchstart", this._touchStartHandler);
     this._canvas.removeEventListener("touchmove", this._touchMoveHandler);
     this._canvas.removeEventListener("touchend", this._touchEndHandler);
+  }
+
+  private static gaussFilter(size: number, sigma: number = 1) {
+    const center = size / 2.0 - 0.5;
+    const filter: number[][] = [];
+    let sum = 0.0;
+
+    // create the filter matrix
+    for (let x = 0; x < size; x++) {
+      filter[x] = [];
+      for (let y = 0; y < size; y++) {
+        const dSquared = Math.pow(x - center, 2) + Math.pow(y - center, 2);
+        const exp = -dSquared / 2 / Math.pow(sigma, 2);
+        sum += filter[x][y] = Math.pow(Math.E, exp);
+      }
+    }
+
+    // normalize the filter!
+    for (let x = 0; x < size; x++) {
+      for (let y = 0; y < size; y++) {
+        filter[x][y] /= sum;
+      }
+    }
+
+    return tf.tensor2d(filter, [size, size], "float32");
   }
 }

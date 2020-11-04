@@ -6,7 +6,8 @@
 }
 
 .draw-area {
-  border: 2px dashed black;
+  border: 2px dashed #0a7cc4;
+  border-radius: 4px;
 }
 
 .result-area {
