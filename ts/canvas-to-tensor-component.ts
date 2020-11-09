@@ -136,12 +136,10 @@ export default class CanvasToTensorComponent extends HTMLElement {
   private createTensor() {
     tf.tidy(() => {
       // create gauss filter for blurring
-      const gaussFilter = CanvasToTensorComponent.gaussFilter(
+      const blurFilter = CanvasToTensorComponent.gaussFilter(
         CANVAS_SCALE,
         Math.sqrt(CANVAS_SCALE)
-      )
-        .expandDims(2)
-        .expandDims<tf.Tensor4D>(2);
+      );
 
       // create a tensor from the drawn image
       // combine channels -> invert -> normalize -> blur -> resize
@@ -152,7 +150,7 @@ export default class CanvasToTensorComponent extends HTMLElement {
         .neg()
         .div(255)
         .expandDims(2)
-        .conv2d(gaussFilter, [1, 1], "same")
+        .conv2d(blurFilter, [1, 1], "same")
         .resizeNearestNeighbor([IMAGE_SIZE, IMAGE_SIZE])
         .clipByValue(0, 1)
         .as2D(IMAGE_SIZE, IMAGE_SIZE);
@@ -216,6 +214,6 @@ export default class CanvasToTensorComponent extends HTMLElement {
       }
     }
 
-    return tf.tensor2d(filter, [size, size], "float32");
+    return tf.tensor2d(filter, [size, size], "float32").as4D(size, size, 1, 1);
   }
 }
