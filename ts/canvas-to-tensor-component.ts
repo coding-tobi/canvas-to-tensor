@@ -61,14 +61,17 @@ export default class CanvasToTensorComponent extends HTMLElement {
     container.appendChild(this._canvas);
 
     // button
-    const button = document.createElement("button");
-    button.innerText = "to tensor";
-    button.onclick = () => {
-      this.createTensor();
+    const toTensorButton = document.createElement("button");
+    toTensorButton.innerText = "to tensor";
+    toTensorButton.onclick = () => {
+      const imageTensor = this.createTensor();
+      this.createOutputCanvas(imageTensor);
+      imageTensor.dispose();
+
       this.clear();
       this.writeDrawHere();
     };
-    container.appendChild(button);
+    container.appendChild(toTensorButton);
 
     // result area
     this._resultArea = document.createElement("div");
@@ -133,17 +136,19 @@ export default class CanvasToTensorComponent extends HTMLElement {
     };
   }
 
+  /**
+   * Creates a tensor from the canvas.
+   */
   private createTensor() {
-    tf.tidy(() => {
+    return tf.tidy(() => {
       // create gauss filter for blurring
       const blurFilter = CanvasToTensorComponent.gaussFilter(
         CANVAS_SCALE,
         Math.sqrt(CANVAS_SCALE)
       );
 
-      // create a tensor from the drawn image
       // combine channels -> invert -> normalize -> blur -> resize
-      const imageTensor = tf.browser
+      return tf.browser
         .fromPixels(this._canvas)
         .mean(2)
         .sub(255)
@@ -154,14 +159,19 @@ export default class CanvasToTensorComponent extends HTMLElement {
         .resizeNearestNeighbor([IMAGE_SIZE, IMAGE_SIZE])
         .clipByValue(0, 1)
         .as2D(IMAGE_SIZE, IMAGE_SIZE);
-
-      // create a canvas from the image tensor
-      const canvas = document.createElement("canvas");
-      canvas.width = IMAGE_SIZE;
-      canvas.height = IMAGE_SIZE;
-      tf.browser.toPixels(imageTensor, canvas);
-      this._resultArea.appendChild(canvas);
     });
+  }
+
+  /**
+   * creates a canvas from the image tensor.
+   * @param imageTensor image tensor
+   */
+  private createOutputCanvas(imageTensor: tf.Tensor2D | tf.Tensor3D) {
+    const canvas = document.createElement("canvas");
+    canvas.width = IMAGE_SIZE;
+    canvas.height = IMAGE_SIZE;
+    tf.browser.toPixels(imageTensor, canvas);
+    this._resultArea.appendChild(canvas);
   }
 
   protected async connectedCallback() {
