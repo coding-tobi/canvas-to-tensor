@@ -11,13 +11,19 @@
 }
 
 .result-area {
-  background-color: black;
+  background-color: #0a7cc4;
+  border-radius: 4px;
+  padding: 4px;
   width: 280px;
   height: 280px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-around;
+}
+
+.result-area canvas:last-child {
+  border: 1px solid #b812b7;
 }
 
 button {

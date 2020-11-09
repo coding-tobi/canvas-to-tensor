@@ -148,7 +148,7 @@ export default class CanvasToTensorComponent extends HTMLElement {
       );
 
       // combine channels -> invert -> normalize -> blur -> resize
-      return tf.browser
+      const image = tf.browser
         .fromPixels(this._canvas)
         .mean(2)
         .sub(255)
@@ -159,6 +159,14 @@ export default class CanvasToTensorComponent extends HTMLElement {
         .resizeNearestNeighbor([IMAGE_SIZE, IMAGE_SIZE])
         .clipByValue(0, 1)
         .as2D(IMAGE_SIZE, IMAGE_SIZE);
+
+      // move the center of mass into the center of the image
+      const centerOfImage = tf.tensor1d([IMAGE_SIZE / 2.0, IMAGE_SIZE / 2.0]);
+      const centerOfMass = CanvasToTensorComponent.centerOfMass(image);
+      const move = centerOfImage.sub(centerOfMass).as1D();
+      const centeredImage = CanvasToTensorComponent.moveImage(image, move);
+
+      return centeredImage;
     });
   }
 
@@ -225,5 +233,42 @@ export default class CanvasToTensorComponent extends HTMLElement {
     }
 
     return tf.tensor2d(filter, [size, size], "float32").as4D(size, size, 1, 1);
+  }
+
+  private static centerOfMass(image: tf.Tensor2D) {
+    return tf.tidy(() => {
+      const ii = tf
+        .range(0, image.shape[0])
+        .expandDims(1)
+        .tile([1, image.shape[1]]);
+      const jj = tf
+        .range(0, image.shape[1])
+        .tile([image.shape[0]])
+        .as2D(image.shape[0], image.shape[1]);
+
+      const imageSum = image.sum();
+      const iPos = image.mul(ii).sum().div(imageSum);
+      const jPos = image.mul(jj).sum().div(imageSum);
+
+      return tf.stack([iPos, jPos]).as1D();
+    });
+  }
+
+  private static moveImage(image: tf.Tensor2D, move: tf.Tensor1D) {
+    return tf.tidy(() => {
+      // gnarr...
+      const d = move.round().dataSync();
+      const top = d[0];
+      const left = d[1];
+      const bottom = -d[0];
+      const right = -d[1];
+
+      return image
+        .pad([
+          [top, bottom],
+          [left, right],
+        ])
+        .as2D(image.shape[0], image.shape[1]);
+    });
   }
 }
