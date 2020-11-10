@@ -23,7 +23,8 @@
 }
 
 .result-area canvas:last-child {
-  border: 1px solid #b812b7;
+  border: 2px solid #b812b7;
+  border-radius: 2px;
 }
 
 button {

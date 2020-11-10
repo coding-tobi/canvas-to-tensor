@@ -163,8 +163,8 @@ export default class CanvasToTensorComponent extends HTMLElement {
       // move the center of mass into the center of the image
       const centerOfImage = tf.tensor1d([IMAGE_SIZE / 2.0, IMAGE_SIZE / 2.0]);
       const centerOfMass = CanvasToTensorComponent.centerOfMass(image);
-      const move = centerOfImage.sub(centerOfMass).as1D();
-      const centeredImage = CanvasToTensorComponent.moveImage(image, move);
+      const distance = centerOfImage.sub(centerOfMass).as1D();
+      const centeredImage = CanvasToTensorComponent.moveImage(image, distance);
 
       return centeredImage;
     });
@@ -235,38 +235,32 @@ export default class CanvasToTensorComponent extends HTMLElement {
     return tf.tensor2d(filter, [size, size], "float32").as4D(size, size, 1, 1);
   }
 
+  /**
+   * Computes the center of mass of a greyscale image.
+   */
   private static centerOfMass(image: tf.Tensor2D) {
     return tf.tidy(() => {
-      const ii = tf
-        .range(0, image.shape[0])
-        .expandDims(1)
-        .tile([1, image.shape[1]]);
-      const jj = tf
-        .range(0, image.shape[1])
-        .tile([image.shape[0]])
-        .as2D(image.shape[0], image.shape[1]);
-
-      const imageSum = image.sum();
-      const iPos = image.mul(ii).sum().div(imageSum);
-      const jPos = image.mul(jj).sum().div(imageSum);
-
+      const [h, w] = image.shape;
+      const ii = tf.range(0, h).expandDims(1).tile([1, w]);
+      const jj = tf.range(0, w).tile([h]).as2D(h, w);
+      const mass = image.sum();
+      const iPos = image.mul(ii).sum().div(mass);
+      const jPos = image.mul(jj).sum().div(mass);
       return tf.stack([iPos, jPos]).as1D();
     });
   }
 
-  private static moveImage(image: tf.Tensor2D, move: tf.Tensor1D) {
+  /**
+   * Moves a grayscale image by a given distance.
+   */
+  private static moveImage(image: tf.Tensor2D, distance: tf.Tensor1D) {
     return tf.tidy(() => {
       // gnarr...
-      const d = move.round().dataSync();
-      const top = d[0];
-      const left = d[1];
-      const bottom = -d[0];
-      const right = -d[1];
-
+      const d = distance.round().dataSync();
       return image
         .pad([
-          [top, bottom],
-          [left, right],
+          [d[0], -d[0]], // top, bottom
+          [d[1], -d[1]], // left, right
         ])
         .as2D(image.shape[0], image.shape[1]);
     });
