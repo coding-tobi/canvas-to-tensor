@@ -3,7 +3,7 @@ Drawing on a Canvas and convert the pixels to a tensorflow.js tensor!
 
 # Get it running
 ## Prerequisites
-1. You need npm [Get npm](https://www.npmjs.com/get-npm).
+1. You need to [get npm](https://www.npmjs.com/get-npm).
 2. Install packages
    ```
    npm install
